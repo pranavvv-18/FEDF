@@ -1,0 +1,2737 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voyager — Multi-City Trip Planner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --org: #FF8C00;
+            --org-hot: #FF4500;
+            --grad: linear-gradient(135deg, #FF8C00, #FF4500);
+            --slate: #1E293B;
+            --slate-l: #334155;
+            --muted: #64748B;
+            --glass: rgba(255, 255, 255, 0.72);
+            --gborder: rgba(255, 140, 0, 0.15);
+            --gshadow: 0 20px 50px rgba(255, 140, 0, 0.10);
+            --green: #10B981;
+            --red: #EF4444;
+            --r: 20px;
+        }
+
+        html {
+            scroll-behavior: smooth
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #fff;
+            color: var(--slate);
+            overflow-x: hidden
+        }
+
+        /* BG gradient layer */
+        .bg-wash {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 140, 0, .04) 0%, #fff 55%, rgba(255, 69, 0, .025) 100%);
+            z-index: 0;
+            pointer-events: none
+        }
+
+        /* Atmosphere Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+            z-index: 0;
+            will-change: transform
+        }
+
+        .o1 {
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(255, 140, 0, .13), transparent 70%);
+            top: -250px;
+            left: -250px
+        }
+
+        .o2 {
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(255, 69, 0, .09), transparent 70%);
+            top: 25%;
+            right: -200px
+        }
+
+        .o3 {
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(255, 140, 0, .07), transparent 70%);
+            bottom: -100px;
+            left: 25%
+        }
+
+        .o4 {
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, rgba(255, 69, 0, .06), transparent 70%);
+            top: 55%;
+            right: 15%
+        }
+
+        /* Flight lines parallax layer */
+        .fl-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: .35;
+            will-change: transform
+        }
+
+        /* Navbar */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, .92);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 140, 0, .1);
+            height: 64px;
+            padding: 0 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .nlogo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -.03em;
+            color: var(--slate);
+            text-decoration: none
+        }
+
+        .nlogo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--grad);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 17px
+        }
+
+        .nlinks {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            list-style: none
+        }
+
+        .nlinks a {
+            text-decoration: none;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 500;
+            transition: color .2s
+        }
+
+        .nlinks a:hover {
+            color: var(--org)
+        }
+
+        .n-cta {
+            background: var(--grad) !important;
+            color: #fff !important;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 700 !important;
+            font-size: 14px;
+            box-shadow: 0 4px 16px rgba(255, 140, 0, .3);
+            transition: opacity .2s, transform .2s !important
+        }
+
+        .n-cta:hover {
+            opacity: .9;
+            transform: translateY(-1px)
+        }
+
+        /* Spring animation on scroll */
+        .mod {
+            opacity: 0;
+            transform: scale(.9) translateY(24px);
+            transition: opacity .65s cubic-bezier(.34, 1.56, .64, 1), transform .65s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .mod.vis {
+            opacity: 1;
+            transform: scale(1) translateY(0)
+        }
+
+        .mod:nth-child(1) {
+            transition-delay: 0s
+        }
+
+        .mod:nth-child(2) {
+            transition-delay: .1s
+        }
+
+        .mod:nth-child(3) {
+            transition-delay: .18s
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--gborder);
+            box-shadow: var(--gshadow);
+            border-radius: var(--r);
+            padding: 28px;
+            height: 100%;
+            transition: border-color .3s, border-width .3s, box-shadow .3s, transform .3s
+        }
+
+        .card:hover {
+            border-color: var(--org);
+            border-width: 2px;
+            box-shadow: 0 24px 64px rgba(255, 140, 0, .18)
+        }
+
+        .card:hover .ci {
+            transform: scale(1.15) translateY(-3px)
+        }
+
+        .ci {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, rgba(255, 140, 0, .13), rgba(255, 69, 0, .07));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: transform .35s cubic-bezier(.34, 1.56, .64, 1);
+            flex-shrink: 0
+        }
+
+        .ct {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -.025em;
+            color: var(--slate);
+            margin-bottom: 3px
+        }
+
+        .cs {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .ch {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px
+        }
+
+        .ch-left {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        /* Layout */
+        main {
+            position: relative;
+            z-index: 1;
+            padding-top: 64px
+        }
+
+        .wrap {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 0 52px
+        }
+
+        .sec {
+            padding: 56px 0 0
+        }
+
+        .sec-tag {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--org);
+            margin-bottom: 8px
+        }
+
+        .sec-h {
+            font-size: clamp(26px, 2.6vw, 36px);
+            font-weight: 800;
+            letter-spacing: -.025em;
+            color: var(--slate);
+            margin-bottom: 28px
+        }
+
+        .g2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px
+        }
+
+        .g3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 11px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em
+        }
+
+        .bo {
+            background: rgba(255, 140, 0, .1);
+            color: var(--org)
+        }
+
+        .bg {
+            background: rgba(16, 185, 129, .1);
+            color: var(--green)
+        }
+
+        .br {
+            background: rgba(239, 68, 68, .1);
+            color: var(--red)
+        }
+
+        /* Buttons */
+        .btn-o {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--grad);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: opacity .2s, transform .2s, box-shadow .2s;
+            box-shadow: 0 4px 14px rgba(255, 140, 0, .3)
+        }
+
+        .btn-o:hover {
+            opacity: .92;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 22px rgba(255, 140, 0, .42)
+        }
+
+        .btn-g {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            color: var(--org);
+            border: 1.5px solid rgba(255, 140, 0, .3);
+            border-radius: 10px;
+            padding: 9px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .btn-g:hover {
+            background: rgba(255, 140, 0, .06);
+            border-color: var(--org)
+        }
+
+        /* Gradient text */
+        .gtxt {
+            background: var(--grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            padding: 90px 0 70px
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 140, 0, .08);
+            border: 1px solid rgba(255, 140, 0, .22);
+            border-radius: 100px;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--org);
+            margin-bottom: 22px
+        }
+
+        .hb-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--org);
+            border-radius: 50%;
+            animation: pdot 2s infinite
+        }
+
+        @keyframes pdot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1)
+            }
+
+            50% {
+                opacity: .5;
+                transform: scale(.7)
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(44px, 5.5vw, 76px);
+            font-weight: 800;
+            letter-spacing: -.035em;
+            line-height: 1.05;
+            color: var(--slate);
+            margin-bottom: 18px
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 520px;
+            line-height: 1.75;
+            margin-bottom: 42px;
+            font-weight: 400
+        }
+
+        /* Hero search bar */
+        .hsearch {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--gborder);
+            box-shadow: 0 24px 64px rgba(255, 140, 0, .13);
+            border-radius: 22px;
+            padding: 20px 22px;
+            max-width: 860px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .hf {
+            flex: 1;
+            min-width: 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px
+        }
+
+        .hf label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            color: var(--muted)
+        }
+
+        .hf input {
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--slate);
+            outline: none
+        }
+
+        .hf input::placeholder {
+            color: #CBD5E1;
+            font-weight: 400
+        }
+
+        .hdiv {
+            width: 1px;
+            height: 44px;
+            background: rgba(255, 140, 0, .15)
+        }
+
+        .hbtn {
+            background: var(--grad);
+            border: none;
+            border-radius: 14px;
+            padding: 14px 26px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 800;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity .2s, transform .2s, box-shadow .2s;
+            box-shadow: 0 8px 26px rgba(255, 140, 0, .38);
+            letter-spacing: -.01em
+        }
+
+        .hbtn:hover {
+            opacity: .92;
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(255, 140, 0, .48)
+        }
+
+        /* Stats */
+        .hero-stats {
+            display: flex;
+            gap: 52px;
+            margin-top: 44px
+        }
+
+        .stat-n {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            color: var(--slate)
+        }
+
+        .stat-n span {
+            color: var(--org)
+        }
+
+        .stat-l {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-top: 2px
+        }
+
+        /* ─── ROUTE BUILDER ─── */
+        .rc {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, .88);
+            border: 1.5px solid rgba(255, 140, 0, .1);
+            border-radius: 14px;
+            margin-bottom: 9px;
+            cursor: grab;
+            user-select: none;
+            position: relative;
+            transition: all .25s
+        }
+
+        .rc:active {
+            cursor: grabbing
+        }
+
+        .rc.drag-over {
+            border-color: var(--org);
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, .18);
+            transform: translateY(-2px)
+        }
+
+        .rc.dragging {
+            opacity: .45;
+            border-style: dashed;
+            border-color: var(--org)
+        }
+
+        .dh {
+            display: flex;
+            flex-direction: column;
+            gap: 3.5px;
+            padding: 2px;
+            flex-shrink: 0
+        }
+
+        .dh span {
+            display: block;
+            width: 16px;
+            height: 2px;
+            background: #CBD5E1;
+            border-radius: 2px;
+            transition: background .2s
+        }
+
+        .rc:hover .dh span {
+            background: var(--org)
+        }
+
+        .cdot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--grad);
+            box-shadow: 0 0 0 4px rgba(255, 140, 0, .16);
+            flex-shrink: 0
+        }
+
+        .ci-info {
+            flex: 1
+        }
+
+        .cn {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--slate);
+            letter-spacing: -.01em
+        }
+
+        .cd {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .cc {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--org);
+            background: rgba(255, 140, 0, .08);
+            padding: 3px 8px;
+            border-radius: 6px;
+            letter-spacing: .05em
+        }
+
+        .connector {
+            position: absolute;
+            left: 47px;
+            bottom: -9px;
+            display: flex;
+            flex-direction: column;
+            gap: 2.5px;
+            z-index: 1
+        }
+
+        .c-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--org);
+            border-radius: 50%;
+            opacity: .45
+        }
+
+        .add-city {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(255, 140, 0, .04);
+            border: 1.5px dashed rgba(255, 140, 0, .25);
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--org);
+            margin-top: 10px;
+            transition: all .2s
+        }
+
+        .add-city:hover {
+            background: rgba(255, 140, 0, .09);
+            border-color: var(--org)
+        }
+
+        .add-icon {
+            width: 24px;
+            height: 24px;
+            background: var(--grad);
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 800
+        }
+
+        /* ─── LAYOVER ─── */
+        .tl-scroll {
+            overflow-x: auto;
+            padding-bottom: 6px
+        }
+
+        .tl-scroll::-webkit-scrollbar {
+            height: 4px
+        }
+
+        .tl-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 140, 0, .3);
+            border-radius: 4px
+        }
+
+        .tl {
+            display: flex;
+            align-items: center;
+            min-width: 640px;
+            padding: 6px 0
+        }
+
+        .tl-city {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+            z-index: 1
+        }
+
+        .tl-ap {
+            width: 50px;
+            height: 50px;
+            background: var(--grad);
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            box-shadow: 0 6px 18px rgba(255, 140, 0, .32)
+        }
+
+        .tl-n {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate);
+            white-space: nowrap
+        }
+
+        .tl-t {
+            font-size: 11px;
+            color: var(--muted);
+            white-space: nowrap
+        }
+
+        .tl-seg {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            min-width: 85px;
+            position: relative
+        }
+
+        .fl-line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--org), var(--org-hot));
+            position: relative;
+            overflow: visible
+        }
+
+        .fl-plane {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -65%);
+            font-size: 13px;
+            color: var(--org);
+            animation: flyit 3.5s ease-in-out infinite
+        }
+
+        @keyframes flyit {
+
+            0%,
+            100% {
+                transform: translate(-65%, -65%)
+            }
+
+            50% {
+                transform: translate(-35%, -65%)
+            }
+        }
+
+        .fl-dur {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--slate);
+            white-space: nowrap
+        }
+
+        .lay-badge {
+            background: rgba(255, 140, 0, .1);
+            border: 1.5px solid rgba(255, 140, 0, .28);
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--org);
+            white-space: nowrap;
+            animation: laypulse 2.5s ease-in-out infinite
+        }
+
+        @keyframes laypulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 140, 0, .25)
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(255, 140, 0, 0)
+            }
+        }
+
+        /* ─── MAP ─── */
+        .map-wrap {
+            border-radius: 18px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(160deg, #EEF4FF 0%, #FFF8F0 60%, #F0F8FF 100%);
+            min-height: 420px
+        }
+
+        .map-pins {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            z-index: 3
+        }
+
+        .mpin {
+            background: rgba(255, 255, 255, .95);
+            border: 1.5px solid rgba(255, 140, 0, .18);
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .07)
+        }
+
+        .pdot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--grad);
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, .2)
+        }
+
+        .pdot.g {
+            background: linear-gradient(135deg, #10B981, #059669);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, .2)
+        }
+
+        .map-svg {
+            width: 100%;
+            height: 420px
+        }
+
+        /* SVG city glow */
+        .city-glow {
+            filter: drop-shadow(0 0 8px rgba(255, 140, 0, .6))
+        }
+
+        .arc-path {
+            fill: none;
+            stroke: var(--org);
+            stroke-width: 2;
+            stroke-dasharray: 8, 5;
+            stroke-linecap: round;
+            opacity: .75
+        }
+
+        .arc-anim {
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            transition: stroke-dashoffset 2.5s cubic-bezier(.4, 0, .2, 1)
+        }
+
+        .arc-anim.draw {
+            stroke-dashoffset: 0
+        }
+
+        /* ─── VISA ─── */
+        .vc {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 15px;
+            background: rgba(255, 255, 255, .88);
+            border-radius: 14px;
+            border: 1.5px solid rgba(0, 0, 0, .06);
+            margin-bottom: 10px;
+            transition: all .2s
+        }
+
+        .vc:hover {
+            transform: translateX(4px);
+            border-color: rgba(255, 140, 0, .2);
+            box-shadow: 0 4px 16px rgba(255, 140, 0, .08)
+        }
+
+        .vf {
+            font-size: 26px;
+            flex-shrink: 0
+        }
+
+        .vi {
+            flex: 1
+        }
+
+        .vco {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--slate);
+            letter-spacing: -.01em
+        }
+
+        .vty {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .vstv {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--green);
+            background: rgba(16, 185, 129, .08);
+            padding: 6px 11px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(16, 185, 129, .2);
+            animation: vglow 3s ease-in-out infinite;
+            white-space: nowrap
+        }
+
+        @keyframes vglow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, .2)
+            }
+
+            50% {
+                box-shadow: 0 0 0 5px rgba(16, 185, 129, 0)
+            }
+        }
+
+        .vstr {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--org);
+            background: rgba(255, 140, 0, .08);
+            padding: 6px 11px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(255, 140, 0, .28);
+            animation: reqpulse 2s ease-in-out infinite;
+            white-space: nowrap
+        }
+
+        @keyframes reqpulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 140, 0, .3)
+            }
+
+            50% {
+                box-shadow: 0 0 0 6px rgba(255, 140, 0, 0)
+            }
+        }
+
+        /* ─── COST ─── */
+        .cost-total {
+            font-size: 44px;
+            font-weight: 800;
+            letter-spacing: -.04em;
+            color: var(--slate);
+            margin-bottom: 4px;
+            line-height: 1
+        }
+
+        .cost-sub {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 22px
+        }
+
+        .cbar-row {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            margin-bottom: 13px
+        }
+
+        .cbar-lbl {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--slate);
+            min-width: 72px
+        }
+
+        .cbar-track {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 140, 0, .08);
+            border-radius: 100px;
+            overflow: hidden
+        }
+
+        .cbar-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: var(--grad);
+            width: 0;
+            transition: width 1.6s cubic-bezier(.34, 1.56, .64, 1)
+        }
+
+        .cbar-amt {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--slate);
+            min-width: 56px;
+            text-align: right
+        }
+
+        .cost-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 14px;
+            border-top: 1.5px solid rgba(255, 140, 0, .12);
+            margin-top: 6px
+        }
+
+        .ctl {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--slate)
+        }
+
+        .cta {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -.025em;
+            color: var(--org)
+        }
+
+        /* ─── DATE PICKER ─── */
+        .cal-hdr {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px
+        }
+
+        .cal-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--slate);
+            letter-spacing: -.02em
+        }
+
+        .cal-nav {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: rgba(255, 140, 0, .08);
+            border: none;
+            cursor: pointer;
+            color: var(--org);
+            font-size: 14px;
+            font-weight: 700;
+            transition: background .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .cal-nav:hover {
+            background: rgba(255, 140, 0, .16)
+        }
+
+        .cal-g {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px
+        }
+
+        .cal-dn {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            padding: 4px 0
+        }
+
+        .cal-d {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--slate);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .18s
+        }
+
+        .cal-d:hover:not(.empty) {
+            background: rgba(255, 140, 0, .09);
+            color: var(--org)
+        }
+
+        .cal-d.sel {
+            background: var(--grad);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(255, 140, 0, .3)
+        }
+
+        .cal-d.range {
+            background: rgba(255, 140, 0, .09);
+            color: var(--org)
+        }
+
+        .cal-d.today {
+            border: 1.5px solid var(--org);
+            color: var(--org);
+            font-weight: 700
+        }
+
+        .cal-d.empty {
+            pointer-events: none;
+            opacity: 0
+        }
+
+        .trip-legs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px
+        }
+
+        .leg-tag {
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            border: 1.5px solid transparent;
+            color: var(--muted)
+        }
+
+        .leg-tag.active {
+            background: rgba(255, 140, 0, .09);
+            border-color: rgba(255, 140, 0, .25);
+            color: var(--org)
+        }
+
+        /* ─── AIRLINE COMPARE ─── */
+        .ar {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 15px;
+            background: rgba(255, 255, 255, .88);
+            border-radius: 14px;
+            border: 1.5px solid rgba(0, 0, 0, .06);
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .ar:hover {
+            border-color: rgba(255, 140, 0, .28);
+            box-shadow: 0 4px 16px rgba(255, 140, 0, .1)
+        }
+
+        .ar.sel {
+            border-color: var(--org);
+            background: rgba(255, 140, 0, .03);
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, .1)
+        }
+
+        .al-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 11px;
+            letter-spacing: -.02em;
+            flex-shrink: 0;
+            color: #fff
+        }
+
+        .al-info {
+            flex: 1
+        }
+
+        .al-n {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--slate);
+            letter-spacing: -.01em
+        }
+
+        .al-r {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .al-p {
+            text-align: right
+        }
+
+        .al-pa {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -.025em;
+            color: var(--slate)
+        }
+
+        .al-pl {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .stars {
+            display: flex;
+            gap: 2px;
+            margin-top: 3px;
+            justify-content: flex-end
+        }
+
+        .star {
+            font-size: 11px;
+            color: var(--org)
+        }
+
+        .star.e {
+            color: #E2E8F0
+        }
+
+        .al-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px
+        }
+
+        /* ─── SAVED TRIPS ─── */
+        .st {
+            background: rgba(255, 255, 255, .88);
+            border: 1.5px solid rgba(0, 0, 0, .06);
+            border-radius: 16px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .25s
+        }
+
+        .st:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 140, 0, .3);
+            box-shadow: 0 14px 36px rgba(255, 140, 0, .14)
+        }
+
+        .st-img {
+            height: 110px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .st-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 10px 12px
+        }
+
+        .st-cities {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap
+        }
+
+        .st-ct {
+            background: rgba(255, 255, 255, .92);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--slate)
+        }
+
+        .st-arrow {
+            color: rgba(255, 255, 255, .8);
+            font-size: 11px
+        }
+
+        .st-info {
+            padding: 12px 14px
+        }
+
+        .st-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--slate);
+            margin-bottom: 5px;
+            letter-spacing: -.01em
+        }
+
+        .st-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .st-date {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .st-cost {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--org)
+        }
+
+        .st-days {
+            display: inline-block;
+            background: rgba(255, 140, 0, .08);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--org);
+            margin-bottom: 6px
+        }
+
+        /* ─── SHARE ─── */
+        .so {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            padding: 13px 15px;
+            background: rgba(255, 255, 255, .88);
+            border: 1.5px solid rgba(0, 0, 0, .06);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: left;
+            font-family: 'Plus Jakarta Sans', sans-serif
+        }
+
+        .so:hover {
+            border-color: rgba(255, 140, 0, .28);
+            background: rgba(255, 140, 0, .02)
+        }
+
+        .so-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0
+        }
+
+        .so-d {
+            flex: 1
+        }
+
+        .so-n {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--slate)
+        }
+
+        .so-s {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .so-arr {
+            color: var(--muted);
+            font-size: 16px;
+            transition: transform .2s, color .2s
+        }
+
+        .so:hover .so-arr {
+            transform: translateX(4px);
+            color: var(--org)
+        }
+
+        .link-box {
+            background: rgba(255, 140, 0, .06);
+            border: 1.5px solid rgba(255, 140, 0, .18);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px
+        }
+
+        .link-url {
+            flex: 1;
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .link-copy {
+            background: var(--grad);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            flex-shrink: 0
+        }
+
+        /* ─── EXPORT ─── */
+        .exp-prev {
+            background: linear-gradient(135deg, #FFF7EE, #FFFAF6);
+            border: 1.5px solid rgba(255, 140, 0, .15);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .exp-prev::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 130px;
+            height: 130px;
+            background: radial-gradient(circle, rgba(255, 140, 0, .14), transparent 70%);
+            border-radius: 50%
+        }
+
+        .exp-di {
+            font-size: 34px;
+            margin-bottom: 8px
+        }
+
+        .exp-t {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--slate);
+            letter-spacing: -.02em;
+            margin-bottom: 3px
+        }
+
+        .exp-p {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500
+        }
+
+        .exp-opts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .eopt {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 13px;
+            background: rgba(255, 255, 255, .88);
+            border: 1.5px solid rgba(0, 0, 0, .06);
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--slate);
+            transition: all .2s
+        }
+
+        .eopt:hover {
+            border-color: rgba(255, 140, 0, .3);
+            color: var(--org)
+        }
+
+        .eopt span {
+            font-size: 16px
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            background: var(--slate);
+            color: rgba(255, 255, 255, .65);
+            padding: 56px 52px;
+            margin-top: 80px;
+            position: relative;
+            z-index: 1
+        }
+
+        .foot-wrap {
+            max-width: 1360px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .foot-logo {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .foot-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--grad);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 17px
+        }
+
+        .foot-tagline {
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, .45);
+            margin-top: 4px
+        }
+
+        .foot-links {
+            display: flex;
+            gap: 28px;
+            list-style: none
+        }
+
+        .foot-links a {
+            color: rgba(255, 255, 255, .55);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color .2s
+        }
+
+        .foot-links a:hover {
+            color: var(--org)
+        }
+
+        .foot-legal {
+            font-size: 12px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, .1);
+            opacity: .5;
+            text-align: center;
+            max-width: 1360px;
+            margin-left: auto;
+            margin-right: auto
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 140, 0, .25);
+            border-radius: 6px
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 140, 0, .5)
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Background wash -->
+    <div class="bg-wash"></div>
+
+    <!-- Atmosphere Orbs (parallax via JS) -->
+    <div class="orb o1" id="orb1"></div>
+    <div class="orb o2" id="orb2"></div>
+    <div class="orb o3" id="orb3"></div>
+    <div class="orb o4" id="orb4"></div>
+
+    <!-- Flight lines parallax layer -->
+    <div class="fl-layer" id="flayer">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+            <defs>
+                <pattern id="dotpat" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+                    <circle cx="1" cy="1" r="1" fill="rgba(255,140,0,0.18)" />
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dotpat)" />
+            <path d="M-50,200 Q300,80 700,280 Q1100,450 1500,180" stroke="rgba(255,140,0,0.12)" stroke-width="1.5"
+                fill="none" stroke-dasharray="8,10" />
+            <path d="M-50,500 Q400,300 900,420 Q1200,500 1600,320" stroke="rgba(255,69,0,0.09)" stroke-width="1"
+                fill="none" stroke-dasharray="5,12" />
+            <path d="M200,-30 Q500,200 400,600 Q350,900 600,1100" stroke="rgba(255,140,0,0.08)" stroke-width="1.5"
+                fill="none" stroke-dasharray="6,10" />
+            <path d="M800,-30 Q1100,300 900,700" stroke="rgba(255,69,0,0.07)" stroke-width="1" fill="none"
+                stroke-dasharray="4,14" />
+        </svg>
+    </div>
+
+    <!-- Navbar -->
+    <nav>
+        <a href="#" class="nlogo">
+            <div class="nlogo-icon">✈</div>
+            Voyager
+        </a>
+        <ul class="nlinks">
+            <li><a href="#routes">Routes</a></li>
+            <li><a href="#map">Map</a></li>
+            <li><a href="#visas">Visas</a></li>
+            <li><a href="#airlines">Airlines</a></li>
+            <li><a href="#saved">My Trips</a></li>
+            <li><a href="#" class="n-cta">Plan a Trip →</a></li>
+        </ul>
+    </nav>
+
+    <main>
+
+        <!-- ═══════════ HERO ═══════════ -->
+        <div class="wrap">
+            <section class="hero mod" id="hero">
+                <div class="hero-badge">
+                    <div class="hb-dot"></div> AI-Powered Multi-City Planner
+                </div>
+                <h1>Plan every stop.<br><span class="gtxt">Fly smarter.</span></h1>
+                <p class="hero-sub">Build complex multi-city itineraries with real-time visa checks, layover
+                    intelligence, and AI-optimised routing across 190+ countries.</p>
+
+                <div class="hsearch">
+                    <div class="hf">
+                        <label>From</label>
+                        <input type="text" placeholder="New York, JFK" value="New York, JFK">
+                    </div>
+                    <div class="hdiv"></div>
+                    <div class="hf">
+                        <label>Cities</label>
+                        <input type="text" placeholder="Add up to 6 stops" value="London · Dubai · Tokyo">
+                    </div>
+                    <div class="hdiv"></div>
+                    <div class="hf">
+                        <label>Depart</label>
+                        <input type="text" placeholder="Select dates" value="Jul 14 – Aug 2">
+                    </div>
+                    <div class="hdiv"></div>
+                    <div class="hf">
+                        <label>Passengers</label>
+                        <input type="text" placeholder="1 adult" value="2 Adults">
+                    </div>
+                    <button class="hbtn">✦ Search Flights</button>
+                </div>
+
+                <div class="hero-stats">
+                    <div>
+                        <div class="stat-n">4.2<span>M</span></div>
+                        <div class="stat-l">Trips planned</div>
+                    </div>
+                    <div>
+                        <div class="stat-n">190<span>+</span></div>
+                        <div class="stat-l">Countries covered</div>
+                    </div>
+                    <div>
+                        <div class="stat-n">38<span>%</span></div>
+                        <div class="stat-l">Average savings</div>
+                    </div>
+                    <div>
+                        <div class="stat-n">2.8<span>s</span></div>
+                        <div class="stat-l">Search speed</div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ═══════════ SECTION 1: Route Builder + Layover ═══════════ -->
+        <div class="wrap sec" id="routes">
+            <div class="sec-tag">Plan Your Journey</div>
+            <div class="sec-h">Build your route</div>
+            <div class="g2">
+
+                <!-- Route Builder -->
+                <div class="mod">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">🗺️</div>
+                                <div>
+                                    <div class="ct">Route Builder</div>
+                                    <div class="cs">Drag to reorder stops</div>
+                                </div>
+                            </div>
+                            <span class="badge bo">5 Cities</span>
+                        </div>
+
+                        <div id="route-list">
+                            <div class="rc" draggable="true" data-idx="0">
+                                <div class="dh"><span></span><span></span><span></span></div>
+                                <div class="cdot"></div>
+                                <div class="ci-info">
+                                    <div class="cn">New York</div>
+                                    <div class="cd">Jul 14 · 09:00</div>
+                                </div>
+                                <div class="cc">JFK</div>
+                                <div class="connector">
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                </div>
+                            </div>
+                            <div class="rc" draggable="true" data-idx="1">
+                                <div class="dh"><span></span><span></span><span></span></div>
+                                <div class="cdot"></div>
+                                <div class="ci-info">
+                                    <div class="cn">London</div>
+                                    <div class="cd">Jul 15 · 22:15</div>
+                                </div>
+                                <div class="cc">LHR</div>
+                                <div class="connector">
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                </div>
+                            </div>
+                            <div class="rc" draggable="true" data-idx="2">
+                                <div class="dh"><span></span><span></span><span></span></div>
+                                <div class="cdot"></div>
+                                <div class="ci-info">
+                                    <div class="cn">Dubai</div>
+                                    <div class="cd">Jul 19 · 07:30</div>
+                                </div>
+                                <div class="cc">DXB</div>
+                                <div class="connector">
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                </div>
+                            </div>
+                            <div class="rc" draggable="true" data-idx="3">
+                                <div class="dh"><span></span><span></span><span></span></div>
+                                <div class="cdot"></div>
+                                <div class="ci-info">
+                                    <div class="cn">Bangkok</div>
+                                    <div class="cd">Jul 23 · 14:50</div>
+                                </div>
+                                <div class="cc">BKK</div>
+                                <div class="connector">
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                    <div class="c-dot"></div>
+                                </div>
+                            </div>
+                            <div class="rc" draggable="true" data-idx="4">
+                                <div class="dh"><span></span><span></span><span></span></div>
+                                <div class="cdot"></div>
+                                <div class="ci-info">
+                                    <div class="cn">Tokyo</div>
+                                    <div class="cd">Jul 27 · 11:00</div>
+                                </div>
+                                <div class="cc">NRT</div>
+                            </div>
+                        </div>
+
+                        <button class="add-city" onclick="this.textContent='City added!'">
+                            <div class="add-icon">+</div> Add another city
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Layover Display -->
+                <div class="mod">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">⏱️</div>
+                                <div>
+                                    <div class="ct">Layover Display</div>
+                                    <div class="cs">All connection times</div>
+                                </div>
+                            </div>
+                            <span class="badge bo">2 Alerts</span>
+                        </div>
+
+                        <div class="tl-scroll">
+                            <div class="tl">
+                                <div class="tl-city">
+                                    <div class="tl-ap">JFK</div>
+                                    <div class="tl-n">New York</div>
+                                    <div class="tl-t">09:00</div>
+                                </div>
+                                <div class="tl-seg">
+                                    <div class="fl-line">
+                                        <div class="fl-plane">✈</div>
+                                    </div>
+                                    <div class="fl-dur">7h 15m</div>
+                                </div>
+                                <div class="tl-city">
+                                    <div class="tl-ap">LHR</div>
+                                    <div class="tl-n">London</div>
+                                    <div class="tl-t">22:15</div>
+                                </div>
+                                <div class="tl-seg">
+                                    <div
+                                        style="background:rgba(255,140,0,.08);border-radius:8px;padding:4px 10px;text-align:center">
+                                        <div class="lay-badge">⚡ 3h 20m Layover</div>
+                                    </div>
+                                </div>
+                                <div class="tl-city">
+                                    <div class="tl-ap">DXB</div>
+                                    <div class="tl-n">Dubai</div>
+                                    <div class="tl-t">Jul 16</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:18px">
+                            <div
+                                style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:12px;letter-spacing:-.01em">
+                                Connection Summary</div>
+                            <div style="display:flex;flex-direction:column;gap:8px">
+                                <div
+                                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,140,0,.06);border:1.5px solid rgba(255,140,0,.15);border-radius:12px">
+                                    <div style="font-size:13px;font-weight:600;color:var(--slate)">LHR → DXB</div>
+                                    <div style="font-size:12px;font-weight:700;color:var(--org)">⚡ 3h 20m — Tight</div>
+                                </div>
+                                <div
+                                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(16,185,129,.04);border:1.5px solid rgba(16,185,129,.15);border-radius:12px">
+                                    <div style="font-size:13px;font-weight:600;color:var(--slate)">DXB → BKK</div>
+                                    <div style="font-size:12px;font-weight:700;color:var(--green)">✓ 5h 40m —
+                                        Comfortable</div>
+                                </div>
+                                <div
+                                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(16,185,129,.04);border:1.5px solid rgba(16,185,129,.15);border-radius:12px">
+                                    <div style="font-size:13px;font-weight:600;color:var(--slate)">BKK → NRT</div>
+                                    <div style="font-size:12px;font-weight:700;color:var(--green)">✓ 6h 50m — Relaxed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════ SECTION 2: Map View ═══════════ -->
+        <div class="wrap sec" id="map">
+            <div class="sec-tag">Visual Route</div>
+            <div class="sec-h">Your flight path</div>
+            <div class="mod">
+                <div class="card" style="padding:0;overflow:hidden">
+                    <div class="map-wrap" id="map-view">
+                        <div class="map-pins">
+                            <div class="mpin">
+                                <div class="pdot"></div>New York
+                            </div>
+                            <div class="mpin">
+                                <div class="pdot"></div>London
+                            </div>
+                            <div class="mpin">
+                                <div class="pdot"></div>Dubai
+                            </div>
+                            <div class="mpin">
+                                <div class="pdot g"></div>Bangkok
+                            </div>
+                            <div class="mpin">
+                                <div class="pdot g"></div>Tokyo
+                            </div>
+                        </div>
+                        <svg class="map-svg" viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Ocean background -->
+                            <rect width="900" height="420" fill="url(#mapbg)" />
+                            <defs>
+                                <radialGradient id="mapbg" cx="50%" cy="50%" r="75%">
+                                    <stop offset="0%" stop-color="#EEF6FF" />
+                                    <stop offset="100%" stop-color="#F5F0FF" />
+                                </radialGradient>
+                                <radialGradient id="cityglow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" stop-color="rgba(255,140,0,0.3)" />
+                                    <stop offset="100%" stop-color="rgba(255,140,0,0)" />
+                                </radialGradient>
+                                <filter id="blur4">
+                                    <feGaussianBlur stdDeviation="4" />
+                                </filter>
+                            </defs>
+
+                            <!-- Continent shapes (simplified) -->
+                            <!-- North America -->
+                            <path
+                                d="M60,80 L70,70 L95,68 L120,75 L135,90 L145,115 L150,140 L140,165 L120,180 L105,195 L95,215 L75,220 L60,210 L50,190 L40,165 L45,130 L55,105 Z"
+                                fill="rgba(200,215,230,0.5)" stroke="rgba(180,200,220,0.4)" stroke-width="1" />
+                            <!-- Europe -->
+                            <path d="M295,60 L320,58 L340,65 L350,80 L345,100 L330,110 L310,108 L295,98 L285,80 Z"
+                                fill="rgba(200,215,230,0.5)" stroke="rgba(180,200,220,0.4)" stroke-width="1" />
+                            <!-- Africa -->
+                            <path
+                                d="M310,120 L340,118 L360,130 L365,165 L360,200 L350,230 L330,245 L310,240 L295,220 L290,185 L295,155 L300,130 Z"
+                                fill="rgba(200,215,230,0.45)" stroke="rgba(180,200,220,0.4)" stroke-width="1" />
+                            <!-- Middle East / Asia -->
+                            <path
+                                d="M390,85 L440,82 L490,90 L530,100 L570,95 L610,85 L650,80 L700,85 L720,100 L710,125 L680,140 L640,145 L590,140 L540,145 L500,150 L460,145 L430,135 L400,125 L385,108 Z"
+                                fill="rgba(200,215,230,0.48)" stroke="rgba(180,200,220,0.4)" stroke-width="1" />
+                            <!-- Japan island -->
+                            <ellipse cx="740" cy="135" rx="22" ry="35" fill="rgba(200,215,230,0.5)"
+                                stroke="rgba(180,200,220,0.4)" stroke-width="1" transform="rotate(-15,740,135)" />
+                            <!-- SE Asia -->
+                            <path d="M570,155 L610,160 L630,180 L620,210 L595,220 L570,210 L555,185 L560,165 Z"
+                                fill="rgba(200,215,230,0.45)" stroke="rgba(180,200,220,0.35)" stroke-width="1" />
+                            <!-- South America -->
+                            <path
+                                d="M130,235 L160,230 L175,245 L180,275 L175,310 L160,335 L140,345 L120,335 L110,310 L108,275 L115,250 Z"
+                                fill="rgba(200,215,230,0.45)" stroke="rgba(180,200,220,0.35)" stroke-width="1" />
+                            <!-- Australia -->
+                            <path d="M650,280 L700,272 L730,285 L740,310 L730,335 L700,348 L665,340 L645,315 L648,290 Z"
+                                fill="rgba(200,215,230,0.45)" stroke="rgba(180,200,220,0.35)" stroke-width="1" />
+
+                            <!-- Glow halos under city dots -->
+                            <circle cx="105" cy="145" r="22" fill="rgba(255,140,0,0.1)" filter="url(#blur4)" />
+                            <circle cx="312" cy="84" r="20" fill="rgba(255,140,0,0.1)" filter="url(#blur4)" />
+                            <circle cx="455" cy="118" r="20" fill="rgba(255,140,0,0.1)" filter="url(#blur4)" />
+                            <circle cx="598" cy="178" r="18" fill="rgba(255,140,0,0.1)" filter="url(#blur4)" />
+                            <circle cx="742" cy="138" r="18" fill="rgba(255,140,0,0.1)" filter="url(#blur4)" />
+
+                            <!-- Animated flight arcs -->
+                            <!-- NYC → London -->
+                            <path class="arc-path arc-anim" id="arc1" d="M105,145 Q208,40 312,84" />
+                            <!-- London → Dubai -->
+                            <path class="arc-path arc-anim" id="arc2" d="M312,84 Q383,50 455,118"
+                                style="transition-delay:.5s" />
+                            <!-- Dubai → Bangkok -->
+                            <path class="arc-path arc-anim" id="arc3" d="M455,118 Q526,80 598,178"
+                                style="transition-delay:1s" />
+                            <!-- Bangkok → Tokyo -->
+                            <path class="arc-path arc-anim" id="arc4" d="M598,178 Q670,90 742,138"
+                                style="transition-delay:1.5s" />
+
+                            <!-- Animated travel dot on arc 1 -->
+                            <circle r="5" fill="var(--org)" opacity="0.9">
+                                <animateMotion dur="4s" repeatCount="indefinite" path="M105,145 Q208,40 312,84" />
+                            </circle>
+                            <circle r="5" fill="var(--org)" opacity="0.9">
+                                <animateMotion dur="3.5s" repeatCount="indefinite" begin="1s"
+                                    path="M312,84 Q383,50 455,118" />
+                            </circle>
+
+                            <!-- City dots -->
+                            <g class="city-glow">
+                                <circle cx="105" cy="145" r="8" fill="white" stroke="var(--org)" stroke-width="2.5" />
+                                <circle cx="105" cy="145" r="4" fill="var(--org)" />
+                            </g>
+                            <g class="city-glow">
+                                <circle cx="312" cy="84" r="8" fill="white" stroke="var(--org)" stroke-width="2.5" />
+                                <circle cx="312" cy="84" r="4" fill="var(--org)" />
+                            </g>
+                            <g class="city-glow">
+                                <circle cx="455" cy="118" r="8" fill="white" stroke="var(--org)" stroke-width="2.5" />
+                                <circle cx="455" cy="118" r="4" fill="var(--org)" />
+                            </g>
+                            <g class="city-glow">
+                                <circle cx="598" cy="178" r="8" fill="white" stroke="#10B981" stroke-width="2.5" />
+                                <circle cx="598" cy="178" r="4" fill="#10B981" />
+                            </g>
+                            <g class="city-glow">
+                                <circle cx="742" cy="138" r="8" fill="white" stroke="#10B981" stroke-width="2.5" />
+                                <circle cx="742" cy="138" r="4" fill="#10B981" />
+                            </g>
+
+                            <!-- City labels -->
+                            <text x="105" y="165" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif"
+                                font-size="11" font-weight="700" fill="var(--slate)">New York</text>
+                            <text x="312" y="72" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif"
+                                font-size="11" font-weight="700" fill="var(--slate)">London</text>
+                            <text x="455" y="108" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif"
+                                font-size="11" font-weight="700" fill="var(--slate)">Dubai</text>
+                            <text x="598" y="198" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif"
+                                font-size="11" font-weight="700" fill="#059669">Bangkok</text>
+                            <text x="742" y="128" text-anchor="middle" font-family="'Plus Jakarta Sans',sans-serif"
+                                font-size="11" font-weight="700" fill="#059669">Tokyo</text>
+
+                            <!-- Total distance indicator -->
+                            <rect x="14" y="365" width="220" height="42" rx="10" fill="rgba(255,255,255,0.88)" />
+                            <text x="28" y="382" font-family="'Plus Jakarta Sans',sans-serif" font-size="11"
+                                font-weight="700" fill="#64748B">TOTAL DISTANCE</text>
+                            <text x="28" y="398" font-family="'Plus Jakarta Sans',sans-serif" font-size="13"
+                                font-weight="800" fill="var(--slate)">18,240 km · 19h 45m total</text>
+
+                            <!-- Legend -->
+                            <circle cx="800" cy="375" r="5" fill="var(--org)" />
+                            <text x="812" y="379" font-family="'Plus Jakarta Sans',sans-serif" font-size="11"
+                                font-weight="600" fill="#64748B">Outbound</text>
+                            <circle cx="800" cy="395" r="5" fill="#10B981" />
+                            <text x="812" y="399" font-family="'Plus Jakarta Sans',sans-serif" font-size="11"
+                                font-weight="600" fill="#64748B">Final leg</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════ SECTION 3: Visa + Cost ═══════════ -->
+        <div class="wrap sec" id="visas">
+            <div class="sec-tag">Trip Intelligence</div>
+            <div class="sec-h">Visa &amp; budget overview</div>
+            <div class="g2">
+
+                <!-- Visa Info Panel -->
+                <div class="mod">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">🛂</div>
+                                <div>
+                                    <div class="ct">Visa Info Panel</div>
+                                    <div class="cs">US Passport · Updated today</div>
+                                </div>
+                            </div>
+                            <button class="btn-g" style="font-size:12px;padding:7px 13px">Refresh ↻</button>
+                        </div>
+
+                        <div class="vc">
+                            <div class="vf">🇬🇧</div>
+                            <div class="vi">
+                                <div class="vco">United Kingdom</div>
+                                <div class="vty">e-Visa on arrival · 180 days</div>
+                            </div>
+                            <div class="vstv">✓ Verified</div>
+                        </div>
+                        <div class="vc">
+                            <div class="vf">🇦🇪</div>
+                            <div class="vi">
+                                <div class="vco">United Arab Emirates</div>
+                                <div class="vty">Visa on Arrival · 30 days</div>
+                            </div>
+                            <div class="vstv">✓ Verified</div>
+                        </div>
+                        <div class="vc">
+                            <div class="vf">🇹🇭</div>
+                            <div class="vi">
+                                <div class="vco">Thailand</div>
+                                <div class="vty">Visa-free · 30 days</div>
+                            </div>
+                            <div class="vstv">✓ Verified</div>
+                        </div>
+                        <div class="vc">
+                            <div class="vf">🇯🇵</div>
+                            <div class="vi">
+                                <div class="vco">Japan</div>
+                                <div class="vty">eVisa required · Apply 14d prior</div>
+                            </div>
+                            <div class="vstr">⚡ Action Required</div>
+                        </div>
+
+                        <div
+                            style="background:rgba(255,140,0,.06);border:1.5px solid rgba(255,140,0,.15);border-radius:12px;padding:14px 16px;margin-top:14px">
+                            <div style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:4px">⚠ Japan
+                                eVisa Reminder</div>
+                            <div style="font-size:12px;color:var(--muted);line-height:1.6">Apply at least 14 days before
+                                your Jul 27 flight. Processing takes 5–7 business days. Cost: ¥3,000 (~$20).</div>
+                            <button class="btn-o" style="margin-top:10px;font-size:12px;padding:8px 14px">Apply Now
+                                →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost Summary -->
+                <div class="mod">
+                    <div class="card" id="cost-card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">💰</div>
+                                <div>
+                                    <div class="ct">Cost Summary</div>
+                                    <div class="cs">2 adults · 19 days</div>
+                                </div>
+                            </div>
+                            <span class="badge bg">-38% vs avg</span>
+                        </div>
+
+                        <div class="cost-total"><span class="gtxt">$6,</span>840</div>
+                        <div class="cost-sub">Total estimated cost per person</div>
+
+                        <div class="cbar-row">
+                            <div class="cbar-lbl">Flights</div>
+                            <div class="cbar-track">
+                                <div class="cbar-fill" data-w="78" style="width:0%"></div>
+                            </div>
+                            <div class="cbar-amt">$2,980</div>
+                        </div>
+                        <div class="cbar-row">
+                            <div class="cbar-lbl">Hotels</div>
+                            <div class="cbar-track">
+                                <div class="cbar-fill" data-w="58" style="width:0%"></div>
+                            </div>
+                            <div class="cbar-amt">$2,120</div>
+                        </div>
+                        <div class="cbar-row">
+                            <div class="cbar-lbl">Transport</div>
+                            <div class="cbar-track">
+                                <div class="cbar-fill" data-w="30" style="width:0%"></div>
+                            </div>
+                            <div class="cbar-amt">$640</div>
+                        </div>
+                        <div class="cbar-row">
+                            <div class="cbar-lbl">Meals</div>
+                            <div class="cbar-track">
+                                <div class="cbar-fill" data-w="24" style="width:0%"></div>
+                            </div>
+                            <div class="cbar-amt">$480</div>
+                        </div>
+                        <div class="cbar-row">
+                            <div class="cbar-lbl">Activities</div>
+                            <div class="cbar-track">
+                                <div class="cbar-fill" data-w="16" style="width:0%"></div>
+                            </div>
+                            <div class="cbar-amt">$360</div>
+                        </div>
+                        <div class="cbar-row">
+                            <div class="cbar-lbl">Visas</div>
+                            <div class="cbar-track">
+                                <div class="cbar-fill" data-w="3" style="width:0%"></div>
+                            </div>
+                            <div class="cbar-amt">$260</div>
+                        </div>
+
+                        <div class="cost-total-row">
+                            <div class="ctl">Total (2 people)</div>
+                            <div class="cta">$13,680</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════ SECTION 4: Date Picker + Airlines ═══════════ -->
+        <div class="wrap sec">
+            <div class="sec-tag">Scheduling &amp; Flights</div>
+            <div class="sec-h">Dates &amp; airlines</div>
+            <div class="g2">
+
+                <!-- Date Picker -->
+                <div class="mod">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">📅</div>
+                                <div>
+                                    <div class="ct">Date Picker</div>
+                                    <div class="cs">Select departure windows</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="trip-legs">
+                            <div class="leg-tag active">NYC→LHR</div>
+                            <div class="leg-tag">LHR→DXB</div>
+                            <div class="leg-tag">DXB→BKK</div>
+                            <div class="leg-tag">BKK→NRT</div>
+                        </div>
+
+                        <div class="cal-hdr">
+                            <button class="cal-nav">‹</button>
+                            <div class="cal-title">July 2025</div>
+                            <button class="cal-nav">›</button>
+                        </div>
+                        <div class="cal-g">
+                            <div class="cal-dn">Su</div>
+                            <div class="cal-dn">Mo</div>
+                            <div class="cal-dn">Tu</div>
+                            <div class="cal-dn">We</div>
+                            <div class="cal-dn">Th</div>
+                            <div class="cal-dn">Fr</div>
+                            <div class="cal-dn">Sa</div>
+                            <div class="cal-d empty"></div>
+                            <div class="cal-d">1</div>
+                            <div class="cal-d">2</div>
+                            <div class="cal-d">3</div>
+                            <div class="cal-d">4</div>
+                            <div class="cal-d">5</div>
+                            <div class="cal-d">6</div>
+                            <div class="cal-d">7</div>
+                            <div class="cal-d">8</div>
+                            <div class="cal-d">9</div>
+                            <div class="cal-d">10</div>
+                            <div class="cal-d">11</div>
+                            <div class="cal-d">12</div>
+                            <div class="cal-d today">13</div>
+                            <div class="cal-d sel">14</div>
+                            <div class="cal-d range">15</div>
+                            <div class="cal-d range">16</div>
+                            <div class="cal-d range">17</div>
+                            <div class="cal-d range">18</div>
+                            <div class="cal-d range">19</div>
+                            <div class="cal-d">20</div>
+                            <div class="cal-d">21</div>
+                            <div class="cal-d">22</div>
+                            <div class="cal-d">23</div>
+                            <div class="cal-d">24</div>
+                            <div class="cal-d">25</div>
+                            <div class="cal-d">26</div>
+                            <div class="cal-d">27</div>
+                            <div class="cal-d">28</div>
+                            <div class="cal-d">29</div>
+                            <div class="cal-d">30</div>
+                            <div class="cal-d">31</div>
+                        </div>
+
+                        <div style="display:flex;gap:8px;margin-top:16px">
+                            <div
+                                style="flex:1;background:rgba(255,140,0,.07);border:1.5px solid rgba(255,140,0,.2);border-radius:12px;padding:12px;text-align:center">
+                                <div
+                                    style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">
+                                    Depart</div>
+                                <div style="font-size:16px;font-weight:800;color:var(--slate);letter-spacing:-.02em">Jul
+                                    14</div>
+                                <div style="font-size:11px;color:var(--org);font-weight:600">Best price day ✦</div>
+                            </div>
+                            <div
+                                style="flex:1;background:rgba(255,255,255,.85);border:1.5px solid rgba(0,0,0,.06);border-radius:12px;padding:12px;text-align:center">
+                                <div
+                                    style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">
+                                    Return</div>
+                                <div style="font-size:16px;font-weight:800;color:var(--slate);letter-spacing:-.02em">Aug
+                                    2</div>
+                                <div style="font-size:11px;color:var(--muted);font-weight:600">19 days total</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Airline Compare -->
+                <div class="mod" id="airlines">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">🛫</div>
+                                <div>
+                                    <div class="ct">Airline Compare</div>
+                                    <div class="cs">JFK → LHR · Jul 14</div>
+                                </div>
+                            </div>
+                            <span class="badge bo">4 options</span>
+                        </div>
+
+                        <div class="ar sel" onclick="selectAir(this)">
+                            <div class="al-logo" style="background:linear-gradient(135deg,#1a56db,#0e3b9e)">BA</div>
+                            <div class="al-info">
+                                <div class="al-n">British Airways</div>
+                                <div class="al-r">JFK → LHR · 7h 10m · Nonstop</div>
+                            </div>
+                            <div class="al-badge">
+                                <div class="al-pa">$849</div>
+                                <div class="al-pl">per person</div>
+                                <div class="stars"><span class="star">★</span><span class="star">★</span><span
+                                        class="star">★</span><span class="star">★</span><span class="star e">★</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ar" onclick="selectAir(this)">
+                            <div class="al-logo" style="background:linear-gradient(135deg,#E31837,#b01028)">VA</div>
+                            <div class="al-info">
+                                <div class="al-n">Virgin Atlantic</div>
+                                <div class="al-r">JFK → LHR · 7h 25m · Nonstop</div>
+                            </div>
+                            <div class="al-badge">
+                                <div class="al-pa">$779</div>
+                                <div class="al-pl">per person</div>
+                                <div class="stars"><span class="star">★</span><span class="star">★</span><span
+                                        class="star">★</span><span class="star">★</span><span class="star">★</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ar" onclick="selectAir(this)">
+                            <div class="al-logo" style="background:linear-gradient(135deg,#FF6900,#cc4f00)">AA</div>
+                            <div class="al-info">
+                                <div class="al-n">American Airlines</div>
+                                <div class="al-r">JFK → LHR · 7h 05m · Nonstop</div>
+                            </div>
+                            <div class="al-badge">
+                                <div class="al-pa">$698</div>
+                                <div class="al-pl">per person</div>
+                                <div class="stars"><span class="star">★</span><span class="star">★</span><span
+                                        class="star">★</span><span class="star">★</span><span class="star e">★</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ar" onclick="selectAir(this)">
+                            <div class="al-logo" style="background:linear-gradient(135deg,#0096D5,#006fa8)">UA</div>
+                            <div class="al-info">
+                                <div class="al-n">United Airlines</div>
+                                <div class="al-r">JFK → LHR · 7h 55m · 1 stop</div>
+                            </div>
+                            <div class="al-badge">
+                                <div class="al-pa">$612</div>
+                                <div class="al-pl">per person</div>
+                                <div class="stars"><span class="star">★</span><span class="star">★</span><span
+                                        class="star">★</span><span class="star e">★</span><span class="star e">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════ SECTION 5: Saved Trips ═══════════ -->
+        <div class="wrap sec" id="saved">
+            <div class="sec-tag">Your Collection</div>
+            <div class="sec-h">Saved trips</div>
+            <div class="g3">
+
+                <div class="mod">
+                    <div class="st">
+                        <div class="st-img" style="background:linear-gradient(135deg,#FF8C00,#FF4500,#c0392b)">
+                            <div class="st-overlay">
+                                <div class="st-cities">
+                                    <div class="st-ct">NYC</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">LHR</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">DXB</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">NRT</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="st-info">
+                            <div class="st-days">19 days</div>
+                            <div class="st-name">Grand Asia Pacific Tour</div>
+                            <div class="st-meta">
+                                <div class="st-date">Jul 14 – Aug 2, 2025</div>
+                                <div class="st-cost">$6,840</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mod">
+                    <div class="st">
+                        <div class="st-img" style="background:linear-gradient(135deg,#0F2F6E,#1565C0,#0288D1)">
+                            <div class="st-overlay">
+                                <div class="st-cities">
+                                    <div class="st-ct">LON</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">AMS</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">BCN</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">ROM</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="st-info">
+                            <div class="st-days">14 days</div>
+                            <div class="st-name">European Summer Loop</div>
+                            <div class="st-meta">
+                                <div class="st-date">Aug 10 – Aug 24, 2025</div>
+                                <div class="st-cost">$3,120</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mod">
+                    <div class="st">
+                        <div class="st-img" style="background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C)">
+                            <div class="st-overlay">
+                                <div class="st-cities">
+                                    <div class="st-ct">MIA</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">BOG</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">LIM</div><span class="st-arrow">→</span>
+                                    <div class="st-ct">EZE</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="st-info">
+                            <div class="st-days">21 days</div>
+                            <div class="st-name">South America Explorer</div>
+                            <div class="st-meta">
+                                <div class="st-date">Sep 1 – Sep 22, 2025</div>
+                                <div class="st-cost">$4,560</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ═══════════ SECTION 6: Share + Export ═══════════ -->
+        <div class="wrap sec" style="padding-bottom:20px">
+            <div class="sec-tag">Collaborate &amp; Export</div>
+            <div class="sec-h">Share &amp; export your trip</div>
+            <div class="g2">
+
+                <!-- Share Itinerary -->
+                <div class="mod">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">🔗</div>
+                                <div>
+                                    <div class="ct">Share Itinerary</div>
+                                    <div class="cs">Invite co-travelers</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="link-box">
+                            <div class="link-url">voyager.app/trip/grand-asia-2025-jk8x</div>
+                            <button class="link-copy" onclick="this.textContent='Copied!'">Copy</button>
+                        </div>
+
+                        <button class="so" onclick="">
+                            <div class="so-icon" style="background:#E8F5E9">📧</div>
+                            <div class="so-d">
+                                <div class="so-n">Email Itinerary</div>
+                                <div class="so-s">Send full trip details to anyone</div>
+                            </div>
+                            <div class="so-arr">›</div>
+                        </button>
+                        <button class="so" onclick="">
+                            <div class="so-icon" style="background:#E3F2FD">💬</div>
+                            <div class="so-d">
+                                <div class="so-n">Send via WhatsApp</div>
+                                <div class="so-s">Share with your travel group</div>
+                            </div>
+                            <div class="so-arr">›</div>
+                        </button>
+                        <button class="so" onclick="">
+                            <div class="so-icon" style="background:#FFF8E1">🗓️</div>
+                            <div class="so-d">
+                                <div class="so-n">Add to Google Calendar</div>
+                                <div class="so-s">Sync all flights &amp; layovers</div>
+                            </div>
+                            <div class="so-arr">›</div>
+                        </button>
+                        <button class="so" onclick="">
+                            <div class="so-icon" style="background:#FCE4EC">📌</div>
+                            <div class="so-d">
+                                <div class="so-n">Export to Notion</div>
+                                <div class="so-s">Full itinerary as a page</div>
+                            </div>
+                            <div class="so-arr">›</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Trip Export PDF -->
+                <div class="mod">
+                    <div class="card">
+                        <div class="ch">
+                            <div class="ch-left">
+                                <div class="ci">📄</div>
+                                <div>
+                                    <div class="ct">Trip Export PDF</div>
+                                    <div class="cs">Print-ready documents</div>
+                                </div>
+                            </div>
+                            <button class="btn-o" style="font-size:12px;padding:8px 14px"
+                                onclick="this.textContent='Generating...'">⬇ Export All</button>
+                        </div>
+
+                        <div class="exp-prev">
+                            <div class="exp-di">📋</div>
+                            <div class="exp-t">Grand Asia Pacific Tour — Full Itinerary</div>
+                            <div class="exp-p">19 pages · 5 cities · Includes visa docs, hotel confirmations, flight
+                                e-tickets</div>
+                        </div>
+
+                        <div
+                            style="font-size:13px;font-weight:700;color:var(--slate);margin-bottom:12px;letter-spacing:-.01em">
+                            Export Options</div>
+                        <div class="exp-opts">
+                            <button class="eopt"><span>✈</span> Flight Summary</button>
+                            <button class="eopt"><span>🏨</span> Hotel Vouchers</button>
+                            <button class="eopt"><span>🛂</span> Visa Docs</button>
+                            <button class="eopt"><span>🗺️</span> City Guides</button>
+                            <button class="eopt"><span>💰</span> Budget Sheet</button>
+                            <button class="eopt"><span>📅</span> Day-by-Day</button>
+                        </div>
+
+                        <div style="display:flex;gap:8px;margin-top:16px">
+                            <button class="btn-o" style="flex:1;justify-content:center;font-size:13px"
+                                onclick="this.textContent='PDF Ready!'">Export as PDF</button>
+                            <button class="btn-g" style="flex:1;justify-content:center;font-size:13px">Export as
+                                XLSX</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="foot-wrap">
+            <div>
+                <div class="foot-logo">
+                    <div class="foot-logo-icon">✈</div>Voyager
+                </div>
+                <div class="foot-tagline">The world's smartest multi-city planner.</div>
+            </div>
+            <ul class="foot-links">
+                <li><a href="#">About</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">API</a></li>
+                <li><a href="#">Privacy</a></li>
+                <li><a href="#">Support</a></li>
+            </ul>
+        </div>
+        <div class="foot-legal">© 2025 Voyager Technologies Inc. All rights reserved. Trip data is for illustrative
+            purposes only.</div>
+    </footer>
+
+    <script>
+        // ─── PARALLAX ───
+        const orb1 = document.getElementById('orb1');
+        const orb2 = document.getElementById('orb2');
+        const orb3 = document.getElementById('orb3');
+        const orb4 = document.getElementById('orb4');
+        const flayer = document.getElementById('flayer');
+        let ticking = false;
+
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    const y = window.scrollY;
+                    orb1.style.transform = `translateY(${y * -0.18}px)`;
+                    orb2.style.transform = `translateY(${y * 0.16}px)`;
+                    orb3.style.transform = `translateY(${y * -0.12}px)`;
+                    orb4.style.transform = `translateY(${y * 0.22}px)`;
+                    flayer.style.transform = `translateY(${y * 0.6}px)`;
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // ─── SPRING SCROLL REVEAL ───
+        const mods = document.querySelectorAll('.mod');
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('vis');
+                }
+            });
+        }, { threshold: .08, rootMargin: '0px 0px -40px 0px' });
+        mods.forEach(m => io.observe(m));
+
+        // ─── MAP ARC ANIMATION ───
+        const mapIO = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    ['arc1', 'arc2', 'arc3', 'arc4'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.classList.add('draw');
+                    });
+                }
+            });
+        }, { threshold: .2 });
+        const mv = document.getElementById('map-view');
+        if (mv) mapIO.observe(mv);
+
+        // ─── COST BAR ANIMATION ───
+        const costIO = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    document.querySelectorAll('.cbar-fill').forEach(b => {
+                        const w = b.getAttribute('data-w');
+                        setTimeout(() => b.style.width = w + '%', 150);
+                    });
+                }
+            });
+        }, { threshold: .3 });
+        const cc = document.getElementById('cost-card');
+        if (cc) costIO.observe(cc);
+
+        // ─── DRAG & DROP ROUTE BUILDER ───
+        let dragSrc = null;
+        document.querySelectorAll('.rc').forEach(rc => {
+            rc.addEventListener('dragstart', function (e) {
+                dragSrc = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            rc.addEventListener('dragend', function () {
+                this.classList.remove('dragging');
+                document.querySelectorAll('.rc').forEach(r => r.classList.remove('drag-over'));
+            });
+            rc.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                document.querySelectorAll('.rc').forEach(r => r.classList.remove('drag-over'));
+                if (this !== dragSrc) this.classList.add('drag-over');
+                return false;
+            });
+            rc.addEventListener('drop', function (e) {
+                e.stopPropagation();
+                if (dragSrc !== this) {
+                    const list = document.getElementById('route-list');
+                    const items = [...list.querySelectorAll('.rc')];
+                    const si = items.indexOf(dragSrc);
+                    const di = items.indexOf(this);
+                    if (si < di) list.insertBefore(dragSrc, this.nextSibling);
+                    else list.insertBefore(dragSrc, this);
+                }
+                this.classList.remove('drag-over');
+                return false;
+            });
+        });
+
+        // ─── CALENDAR INTERACTION ───
+        document.querySelectorAll('.cal-d').forEach(d => {
+            if (!d.classList.contains('empty')) {
+                d.addEventListener('click', function () {
+                    document.querySelectorAll('.cal-d').forEach(x => x.classList.remove('sel', 'range'));
+                    this.classList.add('sel');
+                });
+            }
+        });
+
+        // ─── TRIP LEG TABS ───
+        document.querySelectorAll('.leg-tag').forEach(t => {
+            t.addEventListener('click', function () {
+                document.querySelectorAll('.leg-tag').forEach(x => x.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ─── AIRLINE SELECT ───
+        function selectAir(el) {
+            document.querySelectorAll('.ar').forEach(r => r.classList.remove('sel'));
+            el.classList.add('sel');
+        }
+
+        // ─── SAVED TRIP HOVER ───
+        document.querySelectorAll('.st').forEach(t => {
+            t.addEventListener('click', function () {
+                this.style.transform = 'scale(0.97)';
+                setTimeout(() => this.style.transform = '', 150);
+            });
+        });
+
+        // ─── EXPORT OPTIONS ───
+        document.querySelectorAll('.eopt').forEach(o => {
+            o.addEventListener('click', function () {
+                const prev = this.style.background;
+                this.style.background = 'rgba(255,140,0,.09)';
+                this.style.borderColor = 'rgba(255,140,0,.3)';
+                this.style.color = 'var(--org)';
+                setTimeout(() => {
+                    this.style.background = '';
+                    this.style.borderColor = '';
+                    this.style.color = '';
+                }, 2000);
+            });
+        });
+
+        // ─── HERO ENTRANCE ───
+        setTimeout(() => {
+            const hero = document.getElementById('hero');
+            if (hero) hero.classList.add('vis');
+        }, 80);
+    </script>
+</body>
+
+</html>
