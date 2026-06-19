@@ -1,0 +1,69 @@
+/* [CO1: UI Engineering Constraints / Rendering Pipelines] - Integrating Plus Jakarta Sans Google Fonts and standard layout box-model resets */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: #FAFAFA;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: #0F172A;
+}
+
+/* [CO5: Rendering Optimizations] - Hardware-accelerated floating keyframe animations utilizing transform scaling */
+@keyframes orbFloat {
+  0%,100% { transform: translateY(0) scale(1); }
+  33% { transform: translateY(-30px) scale(1.04); }
+  66% { transform: translateY(20px) scale(0.97); }
+}
+
+@keyframes pdot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#FF8C00, #FF4500);
+  border-radius: 99px;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12) !important;
+  border: 1px solid rgba(255,140,0,0.15) !important;
+}
+.leaflet-popup-tip { display: none !important; }
+
+
+/* ──────────────────────────────────────────
+   Plane-Transition keyframes
+   Plane flies transparently over the current page — no background change.
+   ────────────────────────────────────────── */
+
+/* Plane swoops left → right with a gentle arc */
+@keyframes ptFlyAcross {
+  0%   {
+    transform: translateX(-220px) translateY(-50%) rotate(-5deg);
+    opacity: 0;
+  }
+  6%   { opacity: 1; }
+  45%  {
+    transform: translateX(calc(50vw - 100px)) translateY(calc(-50% - 28px)) rotate(1deg);
+    opacity: 1;
+  }
+  94%  { opacity: 1; }
+  100% {
+    transform: translateX(calc(100vw + 40px)) translateY(-50%) rotate(5deg);
+    opacity: 0;
+  }
+}
+
+/* Contrail fades in then fades out */
+@keyframes ptTrailOnly {
+  0%   { opacity: 0; transform: scaleX(0.1); transform-origin: left center; }
+  25%  { opacity: 1;  transform: scaleX(0.5);  transform-origin: left center; }
+  65%  { opacity: 0.8; transform: scaleX(1);   transform-origin: left center; }
+  100% { opacity: 0;  transform: scaleX(1);   transform-origin: left center; }
+}
